@@ -1,0 +1,2 @@
+pywu2d-client>=0.1.0
+pygame_gui>=0.5.7
