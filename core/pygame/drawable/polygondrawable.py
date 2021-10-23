@@ -1,7 +1,7 @@
 import pygame
-from .drawable import Drawable
+from public.drawable import IDrawable
 
 
-class PolygonDrawable(Drawable):
+class PolygonDrawable(IDrawable):
     def draw(self, screen, sprite):
         pygame.draw.polygon(screen, sprite.color, sprite.points)

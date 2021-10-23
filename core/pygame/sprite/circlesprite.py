@@ -1,0 +1,38 @@
+import pygame
+
+from core.vector2d import Vector2D
+from core.pygame.sprite.sprite import Sprite
+from core.pygame.drawable.circledrawable import CircleDrawable
+
+
+class CircleSprite(Sprite):
+    def __init__(self, id, position=None, radius=1, color="red", *args, **kwargs):
+        super().__init__(id, color, *args, **kwargs)
+
+        if position is None:
+            position = Vector2D(0, 0)
+
+        self.position = position
+
+        self.radius = radius
+
+    def maintain(self, dt):
+
+        self.position.x += self.velocity.x * dt
+        self.position.y += self.velocity.y * dt
+
+    def set_radius(self, radius):
+        self.radius = radius
+        self.dirty = True
+
+    def sync(self, data):
+        super().sync(data)
+
+        self.position.x = data.get("x", self.position.x)
+        self.position.y = data.get("y", self.position.y)
+
+        self.radius = data["data"]["radius"]
+
+    @property
+    def drawable(self):
+        return CircleDrawable()
