@@ -88,6 +88,8 @@ class Client(IGameService, IMessageHandler):
     def on_disconnect(self):
         print("on_disconnect")
         self.destroy_all_entities()
+        self.uwu_service.stop()
+        self.uwu_service = None
         self.ui_service.show()
 
     def on_read(self, type, id, data):

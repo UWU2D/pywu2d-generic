@@ -60,7 +60,7 @@ class UI(IUIService):
                 self.on_user_input(self.server_url.text)
 
     def hide(self):
-        self.server_window.kill()
+        self.server_window.hide()
 
     def show(self):
         self.server_window.show()
