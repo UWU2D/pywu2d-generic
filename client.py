@@ -5,15 +5,14 @@ from pywu2dclient import PyWU2DClient
 from sprite.circlesprite import CircleSprite
 from sprite.polygonsprite2d import PolygonSprite2D
 
-from keymap import KEY_STRING_TO_PYGAME_KEY_MAP, PYGAME_KEY_TO_KEY_STRING_MAP
+from keymap import KEY_STRING_TO_PYGAME_KEY_MAP
 
 
 def create():
-    # return UWUDP4Client(host="127.0.0.1")
-    return UWU2DGenericClient()
+    return Client()
 
 
-class UWU2DGenericClient(PyWU2DClient):
+class Client(PyWU2DClient):
 
     def __init__(self, width=1920, height=1080):
         super().__init__(width, height)
