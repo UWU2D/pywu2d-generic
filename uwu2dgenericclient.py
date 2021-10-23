@@ -1,10 +1,9 @@
 import pygame
 import pygame_gui
 
-import pywu2dclient
-from pywu2dclient.pywu2dclient import PyWU2DClient
-from pywu2dclient.sprite.circlesprite import CircleSprite
-from pywu2dclient.sprite.polygonsprite2d import PolygonSprite2D
+from pywu2dclient import PyWU2DClient
+from sprite.circlesprite import CircleSprite
+from sprite.polygonsprite2d import PolygonSprite2D
 
 from keymap import KEY_STRING_TO_PYGAME_KEY_MAP, PYGAME_KEY_TO_KEY_STRING_MAP
 
@@ -13,15 +12,23 @@ def create():
     # return UWUDP4Client(host="127.0.0.1")
     return UWU2DGenericClient()
 
+
 class UWU2DGenericClient(PyWU2DClient):
 
     def __init__(self, width=1920, height=1080):
         super().__init__(width, height)
 
         self.server_window = None
+        self.sprites = {}
 
     def on_load(self, game_service):
         super().on_load(game_service)
+        game_service.ui_manager = pygame_gui.UIManager(
+            game_service.screen_size)
+        game_service.event_manager.register_for_all(self.on_event)
+
+    def on_event(self, event):
+        self.game_service.ui_manager.process_events(event)
 
     def on_connect(self, s):
         super().on_connect(s)
@@ -30,6 +37,21 @@ class UWU2DGenericClient(PyWU2DClient):
     def on_disconnect(self):
         super().on_disconnect()
         self.server_window.show()
+
+    def post_render(self):
+        self.game_service.ui_manager.draw_ui(self.game_service.screen)
+        super().post_render()
+
+    def process(self, dt):
+        super().process(dt)
+
+        for sprite in self.sprites.values():
+            sprite.tick(dt)
+
+    def render(self):
+        for sprite in self.sprites.values():
+            if sprite.drawable is not None:
+                sprite.drawable.draw(pygame.display.get_surface(), sprite)
 
     def on_close(self, game_service):
         super().on_close(game_service)
@@ -143,6 +165,8 @@ class UWU2DGenericClient(PyWU2DClient):
     def on_ui(self, dt):
         super().on_ui(dt)
 
+        self.game_service.ui_manager.update(dt)
+
         if self.wait_for_user_input:
             if self.server_window is None:
                 self.setup_server_window()
@@ -199,3 +223,19 @@ class UWU2DGenericClient(PyWU2DClient):
         else:
             # Update the info
             self.sprites[id].sync(game_object)
+
+    def instantiate(self, type, debug_name, *args, **kwargs):
+
+        id = self.next_id
+        self.next_id += 1
+        self.sprites[id] = type(id, debug_name=debug_name, *args, **kwargs)
+
+        return self.sprites[id]
+
+    def destroy_all_entities(self):
+        print("Destroying entities")
+        self.sprites.clear()
+
+    def destroy(self, id):
+        if id in self.sprites:
+            del self.sprites[id]
