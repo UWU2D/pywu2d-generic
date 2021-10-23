@@ -13,8 +13,6 @@ from core.pygame.sprite.circlesprite import CircleSprite
 from core.pygame.sprite.polygonsprite2d import PolygonSprite2D
 from core.pygame.keymap import KEY_STRING_TO_PYGAME_KEY_MAP
 
-import pygame_gui
-
 
 def create():
     return Client(1920, 1080)
