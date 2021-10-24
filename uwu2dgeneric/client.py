@@ -138,10 +138,15 @@ class Client(IGameService, IMessageHandler):
     def on_input_setup(self, message):
 
         message = message['input']
+
+        for type in message['types']:
+            if type == 'click':
+                self.register_mouse_click()
+            elif type == 'mouse':
+                self.register_mouse_motion()
+
         if "keyMappings" in message:
             self.register_keys(message["keyMappings"])
-        if "mouse" in message:
-            self.register_mouse(message["mouse"])
 
     '''
     Entity Syncing
@@ -188,12 +193,6 @@ class Client(IGameService, IMessageHandler):
     '''
     Generic input registration
     '''
-
-    def register_mouse(self, mouse):
-        if "motion" in mouse:
-            self.register_mouse_motion()
-        if "click" in mouse:
-            self.register_mouse_click()
 
     def register_mouse_motion(self):
         self.input_service.register_mouse_motion(
