@@ -153,10 +153,11 @@ class Client(IGameService, IMessageHandler):
 
     def sync_entity(self, game_object):
         id = game_object["id"]
-        type = game_object["data"]["shape"]
+        
 
         # we have not encountered this sprite yet
         if id not in self.__sprites:
+            type = game_object["data"]["shape"]
             # create it based on the types we know
             if type == "circle":
                 self.__sprites[id] = CircleSprite(id=id)
@@ -166,7 +167,7 @@ class Client(IGameService, IMessageHandler):
                 print("Unknown sprite type: " + type)
                 return
 
-        if game_object["state"] == "deleted":
+        if "state" in game_object and game_object["state"] == "deleted":
             self.destroy(id)
         else:
             # Update the info

@@ -20,10 +20,12 @@ class PolygonSprite2D(Sprite):
                 self.points[i][1] + self.velocity.y * dt,
             )
 
-    def sync(self, data):
-        super().sync(data)
+    def sync(self, message):
+        super().sync(message)
+        if "data" not in message:
+            return
 
-        points = data["data"].get("points", [])
+        points = message["data"].get("points", [])
         self.points[:] = [(p["x"], p["y"]) for p in points]
 
     @property

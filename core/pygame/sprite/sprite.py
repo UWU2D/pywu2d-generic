@@ -15,18 +15,19 @@ class Sprite(ISprite):
             color = pygame.Color(color)
         self.color = pygame.Color(color)
 
-    def sync(self, data):
+    def sync(self, message):
+        if "data" not in message: 
+            return
+        message = message["data"]
 
-        data = data["data"]
-
-        if "rgba" in data:
-            rgba = data["rgba"]
+        if "rgba" in message:
+            rgba = message["rgba"]
             self.color = pygame.color.Color(
                 rgba[0], rgba[1], rgba[2], rgba[3] * 255)
-        elif "color" in data:
-            self.color = data["color"]
+        elif "color" in message:
+            self.color = message["color"]
 
-        self.velocity.x = data.get("xVelocity", self.velocity.x)
-        self.velocity.y = data.get("yVelocity", self.velocity.y)
-        self.acceleration.x = data.get("yAcceleration", self.acceleration.x)
-        self.acceleration.y = data.get("xAcceleration", self.acceleration.y)
+        self.velocity.x = message.get("xVelocity", self.velocity.x)
+        self.velocity.y = message.get("yVelocity", self.velocity.y)
+        self.acceleration.x = message.get("yAcceleration", self.acceleration.x)
+        self.acceleration.y = message.get("xAcceleration", self.acceleration.y)
