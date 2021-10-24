@@ -2,6 +2,8 @@ import pygame
 
 import uuid
 
+from core.timer import Timer
+
 from public.gameservice import IGameService
 from public.uiservice import IUIService
 
@@ -32,6 +34,10 @@ class Client(IGameService, IMessageHandler):
         self.ui_service = None
         self.should_exit = False
 
+        self.try_to_connect = False
+        self.connection_url = None
+        self.connection_timer = Timer(5000)
+
     '''
     IGameService Implementation
     '''
@@ -39,11 +45,12 @@ class Client(IGameService, IMessageHandler):
     def initialize(self, event_service, input_service, render_service, ui_service):
         self.input_service = input_service
         self.ui_service = ui_service
-        self.ui_service.on_user_input = self.on_server_data
+        self.ui_service.on_try_connect = self.on_try_connect
 
     def stop(self):
         if self.uwu_service:
             self.uwu_service.stop()
+            self.uwu_service = None
 
     @property
     def width(self):
@@ -66,14 +73,30 @@ class Client(IGameService, IMessageHandler):
         return self.__sprites.values()
 
     def maintain(self, dt):
+
+        if self.try_to_connect:
+            if self.uwu_service == None:
+                self.uwu_service = UWU2DService(
+                    WebsocketClient(self.connection_url), self)
+
+            if self.uwu_service.is_connected():
+                self.try_to_connect = False
+            elif self.connection_timer.is_elapsed():
+                self.try_to_connect = False
+                self.stop()
+                self.ui_service.show()
+
         if self.uwu_service is not None:
             self.uwu_service.maintain()
 
         for sprite in self.__sprites.values():
             sprite.maintain(dt)
 
-    def on_server_data(self, text):
-        self.uwu_service = UWU2DService(WebsocketClient(text), self)
+    def on_try_connect(self, text):
+        self.try_to_connect = True
+        self.connection_url = text
+        self.connection_timer.reset()
+        self.ui_service.hide()
 
     '''
     IMessageHandler Implementation
@@ -86,8 +109,7 @@ class Client(IGameService, IMessageHandler):
     def on_disconnect(self):
         print("on_disconnect")
         self.destroy_all_entities()
-        self.uwu_service.stop()
-        self.uwu_service = None
+        self.stop()
         self.ui_service.show()
 
     def on_read(self, type, id, data):
@@ -96,11 +118,12 @@ class Client(IGameService, IMessageHandler):
             self.on_game(data)
         if type == "state":
             self.on_state(data)
-        if type == "input":
-            self.on_input_setup(data)
 
     def on_handshake(self, clientId):
         print("on_handshake, clientId: " + clientId)
+
+    def on_client_config(self, config):
+        self.on_input_setup(config)
 
     '''
     Generic message handling stuff
@@ -114,8 +137,9 @@ class Client(IGameService, IMessageHandler):
 
     def on_input_setup(self, message):
 
-        if "keys" in message:
-            self.register_keys(message["keys"])
+        message = message['input']
+        if "keyMappings" in message:
+            self.register_keys(message["keyMappings"])
         if "mouse" in message:
             self.register_mouse(message["mouse"])
 
@@ -181,10 +205,19 @@ class Client(IGameService, IMessageHandler):
 
     def register_keys(self, keys):
 
-        for game_key, pygame_keys in keys.items():
-            for pygame_key in pygame_keys:
-                key = KEY_STRING_TO_PYGAME_KEY_MAP[pygame_key]
-                self.register_key(game_key, key)
+        # for game_key, pygame_keys in keys.items():
+        #     for pygame_key in pygame_keys:
+        #         key = KEY_STRING_TO_PYGAME_KEY_MAP[pygame_key]
+        #         self.register_key(game_key, key)
+
+        for key_tuple in keys:
+            key, reported_key = key_tuple
+            if key not in KEY_STRING_TO_PYGAME_KEY_MAP:
+                print("Unknown requested key " + key)
+                continue
+
+            pygame_key_id = KEY_STRING_TO_PYGAME_KEY_MAP[key]
+            self.register_key(reported_key, pygame_key_id)
 
     def register_key(self, game_key, pygame_key):
         self.input_service.register_key_event(

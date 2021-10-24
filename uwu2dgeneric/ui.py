@@ -6,7 +6,7 @@ from public.uiservice import IUIService
 class UI(IUIService):
     def __init__(self):
         self.ui_manager = None
-        self.on_user_input = None
+        self.on_try_connect = None
 
     def initialize(self, render_service, event_service):
         self.render_service = render_service
@@ -70,7 +70,7 @@ class UI(IUIService):
     def on_user_event(self, event):
         if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == self.connect_button:
-                self.on_user_input(self.server_url.text)
+                self.on_try_connect(self.server_url.text)
 
     def hide(self):
         self.server_window.hide()
