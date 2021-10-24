@@ -45,9 +45,10 @@ def main_loop(service_factory, tick_rate):
 
         end = timer()
 
-        to_sleep = period - (end - start)
-        if to_sleep > 0:
-            time.sleep(period - (end - start))
+        last_tick = start
+        #to_sleep = period - (end - start)
+        # if to_sleep > 0:
+        #    time.sleep(period - (end - start))
 
     ui_service.stop()
     render_service.stop()

@@ -120,9 +120,15 @@ class Client(IGameService, IMessageHandler):
             self.on_state(data)
 
     def on_handshake(self, clientId):
-        print("on_handshake, clientId: " + clientId)
+        print("on_handshake")
+        self.uwu_service.send_sync()
+
+    def on_sync(self, message):
+        print("on_sync")
+        self.sync_entities(message)
 
     def on_client_config(self, config):
+        print("on_client_config")
         self.on_input_setup(config)
 
     '''
@@ -158,25 +164,28 @@ class Client(IGameService, IMessageHandler):
 
     def sync_entity(self, game_object):
         id = game_object["id"]
-        
 
         # we have not encountered this sprite yet
         if id not in self.__sprites:
-            type = game_object["data"]["shape"]
-            # create it based on the types we know
-            if type == "circle":
-                self.__sprites[id] = CircleSprite(id=id)
-            elif type == "polygon":
-                self.__sprites[id] = PolygonSprite2D(id=id)
-            else:
-                print("Unknown sprite type: " + type)
-                return
+            if 'data' in game_object and 'shape' in game_object['data']:
+                self.create_entity(id, game_object['data']['shape'])
 
         if "state" in game_object and game_object["state"] == "deleted":
             self.destroy(id)
         else:
-            # Update the info
-            self.__sprites[id].sync(game_object)
+            if id in self.__sprites:
+                # Update the info
+                self.__sprites[id].sync(game_object)
+
+    def create_entity(self, id, shape):
+        # create it based on the types we know
+        if shape == "circle":
+            self.__sprites[id] = CircleSprite(id=id)
+        elif shape == "polygon":
+            self.__sprites[id] = PolygonSprite2D(id=id)
+        else:
+            print("Unknown sprite type: " + type)
+            return
 
     def instantiate(self, type, debug_name, *args, **kwargs):
         id = uuid.uuid4()
@@ -228,6 +237,9 @@ class Client(IGameService, IMessageHandler):
         )
 
     def on_key_press(self, game_key, pygame_key, pressed):
+        if self.uwu_service is None:
+            return
+
         self.uwu_service.send_message(
             "game",
             {
@@ -238,10 +250,16 @@ class Client(IGameService, IMessageHandler):
         )
 
     def on_mouse_motion(self, x, y):
+        if self.uwu_service is None:
+            return
+
         self.uwu_service.send_message(
             "game", {"type": "mouse", "x": x, "y": y})
 
     def on_mouse_click(self, x, y, button, pressed):
+        if self.uwu_service is None:
+            return
+
         if button == pygame.BUTTON_LEFT:
             button == "leftClick"
         elif button == pygame.BUTTON_RIGHT:

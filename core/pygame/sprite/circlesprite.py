@@ -17,7 +17,6 @@ class CircleSprite(Sprite):
         self.radius = radius
 
     def maintain(self, dt):
-
         self.position.x += self.velocity.x * dt
         self.position.y += self.velocity.y * dt
 
@@ -25,14 +24,15 @@ class CircleSprite(Sprite):
         self.radius = radius
         self.dirty = True
 
-    def sync(self, data):
-        super().sync(data)
+    def sync(self, message):
+        super().sync(message)
 
-        self.position.x = data.get("x", self.position.x)
-        self.position.y = data.get("y", self.position.y)
+        self.position.x = message.get("x", self.position.x)
+        self.position.y = message.get("y", self.position.y)
 
-        self.radius = data["data"]["radius"]
+        data = message["data"]
+        self.radius = data.get("radius", self.radius)
 
-    @property
+    @ property
     def drawable(self):
         return CircleDrawable()
